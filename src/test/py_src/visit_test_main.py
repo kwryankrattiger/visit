@@ -818,9 +818,17 @@ def JSONImageTestResult(case_name, status,
 # ----------------------------------------------------------------------------
 def Save_Validate_Perturb_Restore_Session(cur):
     retval = 0
-    trans = string.maketrans("():; #","______")
-    sfile = "%s.session"%string.translate(string.rstrip(cur,".png"),trans)
-    ofile = "%s.xmlized.session"%string.translate(string.rstrip(cur,".png"),trans)
+    if (sys.version_info > (3, 0)):
+        trans = str.maketrans("():; #","______")
+    else:
+        trans = string.maketrans("():; #","______")
+    if (sys.version_info > (3, 0)):
+        tmp = string.rstrip(cur,".png")
+        sfile = "%s.session"%tmp.translate(trans)
+        ofile = "%s.xmlized.session"%tmp.translate(trans)
+    else:
+        sfile = "%s.session"%string.translate(string.rstrip(cur,".png"),trans)
+        ofile = "%s.xmlized.session"%string.translate(string.rstrip(cur,".png"),trans)
     RemoveFile(sfile)
     SaveSession(sfile)
 
@@ -1724,24 +1732,31 @@ def FilterTestText(inText, baseText, numdifftol):
         baseWords = baseText.split()
         inWords = tmpText.split()
         outText=""
-        transTab = string.maketrans(string.digits, string.digits)
+        if (sys.version_info > (3, 0)):
+            transTab = str.maketrans(string.digits, string.digits, '><,()')
+        else:
+            transTab = string.maketrans(string.digits, string.digits)
         inStart = 0
         for w in range(len(baseWords)):
             try:
-                inWordT = string.translate(inWords[w], transTab, '><,()')
-                baseWordT = string.translate(baseWords[w], transTab, '><,()')
+                if (sys.version_info > (3, 0)):
+                    inWordT = inWords[w].translate(transTab)
+                    baseWordT = baseWords[w].translate(transTab)
+                else:
+                    inWordT = string.translate(inWords[w], transTab, '><,()')
+                    baseWordT = string.translate(baseWords[w], transTab, '><,()')
                 if inWordT.count(".") == 2 and inWordT.endswith(".") or \
                    baseWordT.count(".") == 2 and baseWordT.endswith("."):
                     inWordT = inWordT.rstrip(".")
                     baseWordT = baseWordT.rstrip(".")
-                inStart = string.find(tmpText, inWords[w], inStart)
+                inStart = tmpText.find(inWords[w], inStart)
 
                 #
                 # Attempt to convert this word to a number. Exception indicates
                 # it wasn't a number and we can move on to next word
                 #
-                inVal = string.atof(inWordT)
-                baseVal = string.atof(baseWordT)
+                inVal = float(inWordT)
+                baseVal = float(baseWordT)
 
                 #
                 # Compute a relative difference measure for these two numbers
